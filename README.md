@@ -40,6 +40,8 @@ The admin page edits a local copy of the catalogue. Download its updated product
 
 This is a pre-launch storefront with sample products and illustrations. Replace them with real products and accurate specifications, publish your shipping, returns and warranty terms, and finish payment setup before accepting orders.
 
+Checkout creates an order request ID, shows it to the customer and includes it in the prepared WhatsApp message. Retrying the same cart or refreshing keeps the same ID; changing the cart or choosing “Start a separate order request” creates a new one. Only the ID and cart signature are saved, without customer delivery details. The ID is a client-generated reference, not a server-confirmed order. In the manual admin register, copy the customer’s ID from WhatsApp into the optional Customer order ID field to keep the same reference.
+
 Checkout opens a prepared WhatsApp message. Customers must press Send in WhatsApp. It does not create a confirmed order, reserve stock or automatically collect payment.
 
 Razorpay is not fully integrated. You can configure a public hosted payment link after confirming the correct order amount. Automated payment creation and verification require a secure backend. Never put a Razorpay secret key or other credentials in website files.

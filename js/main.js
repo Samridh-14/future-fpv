@@ -97,7 +97,34 @@ const STORE = {
       if (payment === 'Razorpay') { let valid = false; try { const u = new URL(STORE.razorpayPaymentLink); valid = u.protocol === 'https:' && ['rzp.io','razorpay.com','pages.razorpay.com'].includes(u.hostname); } catch (_) {} box.innerHTML = '<strong>Razorpay · UPI, cards & net banking</strong><p>' + (valid ? 'A hosted payment link is available. Confirm the exact amount with the store before paying.' : 'Razorpay is not configured yet. The store can send a secure payment link after confirming your order.') + '</p>' + (valid ? `<a class="text-link" target="_blank" rel="noopener noreferrer" href="${esc(STORE.razorpayPaymentLink)}">Open Razorpay payment link ↗</a>` : ''); }
     }
     $('#payment').addEventListener('change', paymentInfo); paymentInfo(); renderCart();
-    $('#checkout-form').addEventListener('submit', e => { e.preventDefault(); if (!cart.length) return; const form = e.currentTarget; if (!form.reportValidity()) return; const data = new FormData(form); const lines = cart.map(row => { const p = getProduct(row.id); return `${p.name} × ${row.qty} — ${money(p.price * row.qty)}`; }); const message = ['Hello Future FPV! I would like to place an order request:', '', ...lines, '', `Subtotal: ${money(subtotal())}`, `Shipping: ${money(STORE.shipping)}`, `Total: ${money(subtotal()+STORE.shipping)}`, '', `Name: ${data.get('name').trim()}`, `Phone: ${data.get('phone')}`, `Address: ${data.get('address').trim()}`, `PIN: ${data.get('pincode')}`, `Payment preference: ${data.get('payment')}`, '', 'Please confirm stock, delivery, return terms and payment instructions.'].join('\n'); if (openWhatsApp(message, $('#checkout-status'))) $('#checkout-status').textContent = 'WhatsApp opened with your order request. Press Send there to contact the store. Your cart is kept until you choose to clear it.'; });
+    // Persist only a random reference and cart signature, never delivery details.
+    let requestReference = read('futurefpv-order-reference-v1', null);
+    if (!requestReference || !/^FF-[0-9]{8}-[A-F0-9]{24}$/.test(requestReference.id) || typeof requestReference.signature !== 'string') requestReference = null;
+    function showReference() {
+      $('#order-reference').hidden = !requestReference;
+      $('#order-reference-value').textContent = requestReference ? requestReference.id : '';
+    }
+    function orderId() {
+      const signature = JSON.stringify({items:cart.map(row => [row.id,row.qty,getProduct(row.id).price]),shipping:STORE.shipping});
+      if (!requestReference || requestReference.signature !== signature) {
+        const date = new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()).replace(/-/g,'');
+        const bytes = crypto.getRandomValues(new Uint8Array(12));
+        const random = Array.from(bytes,byte => byte.toString(16).padStart(2,'0')).join('').toUpperCase();
+        requestReference = {id:'FF-' + date + '-' + random,signature};
+        save('futurefpv-order-reference-v1',requestReference);
+      }
+      showReference(); return requestReference.id;
+    }
+    $('#new-order-reference').addEventListener('click',() => {
+      requestReference = null;
+      save('futurefpv-order-reference-v1',null);
+      showReference();
+      $('#checkout-status').textContent = 'Your next checkout request will receive a new order ID.';
+    });
+    showReference();
+    $('#checkout-form').addEventListener('submit', e => { e.preventDefault(); if (!cart.length) return; const form = e.currentTarget; if (!form.reportValidity()) return;
+      if (!whatsappUrl('')) { openWhatsApp('', $('#checkout-status')); return; }
+      const reference = orderId(); const data = new FormData(form); const lines = cart.map(row => { const p = getProduct(row.id); return `${p.name} × ${row.qty} — ${money(p.price * row.qty)}`; }); const message = ['Hello Future FPV! I would like to place an order request:', `Order ID: ${reference}`, '', ...lines, '', `Subtotal: ${money(subtotal())}`, `Shipping: ${money(STORE.shipping)}`, `Total: ${money(subtotal()+STORE.shipping)}`, '', `Name: ${data.get('name').trim()}`, `Phone: ${data.get('phone')}`, `Address: ${data.get('address').trim()}`, `PIN: ${data.get('pincode')}`, `Payment preference: ${data.get('payment')}`, '', 'Please confirm stock, delivery, return terms and payment instructions.'].join('\n'); if (openWhatsApp(message, $('#checkout-status'))) $('#checkout-status').textContent = 'Order ID: ' + reference + '. WhatsApp opened with your order request. Press Send there and keep this ID for follow-up. The store will confirm your order.'; });
   }
   if (page === 'contact') {
     $('#contact-methods').innerHTML = `<h2>Talk to Future FPV</h2><div class="contact-option"><strong>WhatsApp</strong><br>${STORE.whatsapp ? `<button class="button secondary" id="contact-wa">Start a conversation ↗</button>` : '<p>Business WhatsApp number coming soon.</p>'}</div><div class="contact-option"><strong>Phone</strong><br>${/^\+?\d{10,15}$/.test(STORE.phone) ? `<a href="tel:${esc(STORE.phone)}">${esc(STORE.phone)}</a>` : '<p>Phone number coming soon.</p>'}</div><div class="contact-option"><strong>Email</strong><br>${/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(STORE.email) ? `<a href="mailto:${esc(STORE.email)}">${esc(STORE.email)}</a>` : '<p>Email address coming soon.</p>'}</div><p>Delivery across India · ₹35 per order</p>`;

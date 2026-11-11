@@ -46,7 +46,10 @@
     e.preventDefault(); const form = e.currentTarget;
     if (!form.reportValidity()) return;
     const data = new FormData(form);
-    const order = {id:'FF-' + Date.now().toString(36).toUpperCase() + '-' + crypto.getRandomValues(new Uint32Array(1))[0].toString(36).toUpperCase(),customer:String(data.get('customer')).trim(),phone:String(data.get('phone')).trim(),address:String(data.get('address')).trim(),items:String(data.get('items')).trim(),total:Number(data.get('total')),payment:String(data.get('payment')),paymentState:'Unverified',status:'New',createdAt:new Date().toISOString()};
+    const suppliedId = String(data.get('orderId') || '').trim().toUpperCase();
+    if (suppliedId && !/^FF-[A-Z0-9-]{1,70}$/.test(suppliedId)) { $('#order-save-status').textContent = 'Enter the FF- order ID from the WhatsApp message.'; return; }
+    if (suppliedId && orders.some(o => o.id === suppliedId)) { $('#order-save-status').textContent = 'This order ID is already recorded. Find the existing entry using search.'; return; }
+    const order = {id:suppliedId || 'FF-' + Date.now().toString(36).toUpperCase() + '-' + crypto.getRandomValues(new Uint32Array(1))[0].toString(36).toUpperCase(),customer:String(data.get('customer')).trim(),phone:String(data.get('phone')).trim(),address:String(data.get('address')).trim(),items:String(data.get('items')).trim(),total:Number(data.get('total')),payment:String(data.get('payment')),paymentState:'Unverified',status:'New',createdAt:new Date().toISOString()};
     if (!valid(order)) { $('#order-save-status').textContent = 'Check the customer details and enter a total greater than zero.'; return; }
     if (persist([...orders,order])) { form.reset(); $('#order-save-status').textContent = 'Order saved on this device: ' + order.id; render(); }
   });
