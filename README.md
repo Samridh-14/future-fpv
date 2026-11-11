@@ -31,13 +31,13 @@ Cart data uses localStorage. A web server or HTTPS hosting gives more consistent
 
 Prices and stock are connected to the private Google Sheet through the deployed read-only Apps Script feed. Edit the price and stock columns, wait for Google to save, and refresh the website. No GitHub upload is needed for these numbers. Product descriptions and photos remain in products.js. See [the setup and editing guide](integrations/google-sheets/SETUP.md).
 
-## Automatic order capture (awaiting script deployment)
+## Automatic order capture (active)
 
-The checkout and private Google-account order dashboard are prepared for COD, UPI and Razorpay requests. The owner must deploy the updated Code.gs before activation. Until the product feed advertises order capture, the live storefront keeps its WhatsApp checkout. Follow [the order activation guide](integrations/google-sheets/ORDERS_SETUP.md). Customer details go to a separate private Orders Sheet after activation, not to the public product feed or GitHub. Payment status remains Unverified until checked manually.
+The checkout and private Google-account order dashboard are active for COD, UPI and Razorpay requests. Customer details go to the separate private Orders Sheet, not the public product feed or GitHub. Payment status remains Unverified until checked manually. See [the order setup guide](integrations/google-sheets/ORDERS_SETUP.md) for future deployments.
 
-## Automatic stock deduction (awaiting Google deployment)
+## Automatic stock deduction (active)
 
-Automatic deduction, duplicate-safe retries and cancellation restocking are prepared. Enable the Google Sheets API service and deploy the updated Code.gs using [the stock activation guide](integrations/google-sheets/STOCK_SETUP.md). All payment choices reserve units when the order saves, even while payment is unverified. Earlier orders keep Legacy manual stock handling. No SMS integration is included.
+Automatic deduction, duplicate-safe retries and cancellation restocking are active and verified with a live test. All payment choices reserve units when the order saves, even while payment is unverified. Earlier orders keep Legacy manual stock handling. See [the stock setup guide](integrations/google-sheets/STOCK_SETUP.md) for future deployments. No SMS integration is included.
 
 ## Edit the store
 

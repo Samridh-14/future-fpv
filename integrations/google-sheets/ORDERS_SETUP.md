@@ -2,7 +2,7 @@
 
 ## Status
 
-Prepared and tested with simulated orders; activation requires the owner to update the existing Google Apps Script deployment. Until then, the storefront uses its existing WhatsApp checkout. No live customer order has been created during testing.
+Active and verified for COD, UPI and Razorpay. Clearly labelled synthetic test orders were removed after verification. The deployment steps below are retained for future updates.
 
 ## What changes after activation
 
@@ -35,6 +35,6 @@ The dashboard shows the latest 500 orders and refreshes every 30 seconds while v
 
 Razorpay automatic payment creation/webhook verification is not implemented. Hosted payment links, UPI and COD all record an order first, but you must verify actual payment independently. No card details are collected by this website.
 
-Automatic stock deduction is now prepared; follow STOCK_SETUP.md to enable the Sheets API service and deploy the inventory version. Until that update is deployed, stock handling remains manual. After activation, all payment methods deduct on save, and unshipped cancellations restore stock once. Refund verification remains manual.
+Automatic stock deduction is active. All payment methods deduct on save, and unshipped cancellations restore stock once. Earlier orders keep Legacy manual handling. Refund verification remains manual. See STOCK_SETUP.md for future deployments.
 
 Google quotas apply. The order endpoint is intentionally public to accept customer submissions; the server validates payload size, quantities, stock and totals, but this does not establish a customer's identity or provide advanced spam prevention. Never share the Orders Sheet or commit exported customer records to GitHub.

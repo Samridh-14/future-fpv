@@ -2,7 +2,7 @@
 
 ## Status
 
-Prepared and tested locally. The owner must enable the Google Sheets API service and deploy the updated Code.gs before automatic stock handling becomes active. Existing stock values have been preserved.
+Active and verified against the deployed Google script. A live test deducted one unit, retrying did not deduct again, and cancellation restored the unit. The test record was removed. The activation steps below are retained for future deployments.
 
 ## Activate in Google Apps Script
 
