@@ -2,6 +2,10 @@
 
 A simple online storefront for drones and FPV parts in India. Built with plain HTML, CSS and JavaScript. No framework, installation or build command is needed.
 
+## Performance
+
+See [PERFORMANCE.md](PERFORMANCE.md) for the measured bottleneck and fixes. Catalogue values may be reused for 30 seconds during page-to-page browsing; reload reads fresh values. Saving an order invalidates the cache, and the backend checks prices and stock independently. About/Contact do not call Google Sheets. Fonts are served locally and work offline.
+
 ## Preview the website
 
 Download or clone this repository and open **index.html** in your browser. Keep the css, js and images folders alongside it.
@@ -14,7 +18,7 @@ python -m http.server 8000
 
 Then visit http://localhost:8000. On some computers the command is `python3` instead of `python`.
 
-Cart data uses localStorage. A web server or HTTPS hosting gives more consistent cart storage than opening local files directly. Google Fonts needs internet access; fallback fonts work offline.
+Cart data uses localStorage. A web server or HTTPS hosting gives more consistent cart storage than opening local files directly. The bundled Google Fonts are served locally; no external font service is needed.
 
 ## Pages and features
 
