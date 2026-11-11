@@ -1,0 +1,24 @@
+# Local settings and secrets — never publish these.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Temporary work, logs and generated download packages.
+work/
+scratch/
+*.log
+*.tmp
+*.zip
+*.tar.gz
+
+# Hosting settings for the separate preview site.
+.openai/
+
+# Editor and operating-system files.
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*~
