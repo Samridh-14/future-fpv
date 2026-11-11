@@ -1,8 +1,8 @@
 /* Prices and stock can come from the read-only Apps Script feed.
    This URL is public; it must never accept edits or return customer information.
-   Leave empty until the owner has deployed and authorised the prepared script. */
+   The owner has deployed this read-only feed. Edit stock and prices in the private Sheet. */
 window.CATALOGUE_CONFIG = {
-  endpoint: '',
+  endpoint: 'https://script.google.com/macros/s/AKfycbzpv2OZjjA7cbuoEikkj6f_quiJWKyfFTyeIs3qPtlXfzR_MLOQkdEkwrCx7nes9DA/exec',
   sheetUrl: 'https://docs.google.com/spreadsheets/d/14vTExbmQ6j0hCeJB1Q88zEUmSDKMyMLfN0wixPqQD6I/edit'
 };
 window.CATALOGUE_READY = (async () => {

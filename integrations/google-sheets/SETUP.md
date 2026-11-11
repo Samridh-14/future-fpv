@@ -4,7 +4,7 @@ Sheet: https://docs.google.com/spreadsheets/d/14vTExbmQ6j0hCeJB1Q88zEUmSDKMyMLfN
 
 ## Current status
 
-The Sheet has all eight current products. The read-only Apps Script feed and storefront loader are prepared. **Live sync is not active until the owner deploys the script and its web-app URL is configured.** The existing catalogue continues to work in the meantime.
+**Live sync is active.** The Sheet has all eight current products, and its read-only Apps Script web-app URL is configured in js/catalogue.js. Prices and stock are loaded on each new page load. The setup instructions below are retained for future redeployment.
 
 ## Owner steps
 

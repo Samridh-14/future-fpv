@@ -27,9 +27,9 @@ Cart data uses localStorage. A web server or HTTPS hosting gives more consistent
 - Mobile navigation, beginner guidance, compatibility notes and FAQs.
 - A separate admin.html page for local stock editing and a manual order register, accessible by direct URL.
 
-## Google Sheets connection (prepared, awaiting owner deployment)
+## Google Sheets connection (active)
 
-The product Sheet and read-only feed are prepared. Live sync is not active until the owner deploys Apps Script and its web-app URL is configured. Follow [the setup guide](integrations/google-sheets/SETUP.md). After activation, price and stock come from the private Sheet on page load; product descriptions and photos remain in products.js.
+Prices and stock are connected to the private Google Sheet through the deployed read-only Apps Script feed. Edit the price and stock columns, wait for Google to save, and refresh the website. No GitHub upload is needed for these numbers. Product descriptions and photos remain in products.js. See [the setup and editing guide](integrations/google-sheets/SETUP.md).
 
 ## Edit the store
 
