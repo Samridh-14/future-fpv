@@ -1,11 +1,11 @@
-/* Edit this array to replace sample products. Prices are in INR. Stock here is the public stock source. */
+/* Future FPV catalogue — prices in INR. */
 window.PRODUCTS = [
   {
     "id": 1,
     "name": "Freestyle 5″ Frame",
     "category": "Frames",
     "price": 1899,
-    "stock": 12,
+    "stock": 0,
     "description": "A sturdy starting point for your first freestyle build.",
     "compatibility": "5-inch propellers; 30.5 × 30.5 mm stack mounting. Check motor and stack clearance.",
     "image": "images/product-1.svg",
@@ -16,7 +16,7 @@ window.PRODUCTS = [
     "name": "2207 Brushless Motor",
     "category": "Motors",
     "price": 999,
-    "stock": 24,
+    "stock": 0,
     "description": "Smooth power for everyday freestyle flying.",
     "compatibility": "1750 KV sample specification; intended for a compatible 6S build. Verify ESC rating.",
     "image": "images/product-2.svg",
