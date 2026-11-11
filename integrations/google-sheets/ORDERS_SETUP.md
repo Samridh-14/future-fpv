@@ -35,6 +35,6 @@ The dashboard shows the latest 500 orders and refreshes every 30 seconds while v
 
 Razorpay automatic payment creation/webhook verification is not implemented. Hosted payment links, UPI and COD all record an order first, but you must verify actual payment independently. No card details are collected by this website.
 
-Stock is checked at submission time but is not automatically reserved or reduced. Two requests may ask for the same stock. Confirm availability and update the Products Sheet manually before asking for payment. Automated inventory reservation and refunds are separate work.
+Automatic stock deduction is now prepared; follow STOCK_SETUP.md to enable the Sheets API service and deploy the inventory version. Until that update is deployed, stock handling remains manual. After activation, all payment methods deduct on save, and unshipped cancellations restore stock once. Refund verification remains manual.
 
 Google quotas apply. The order endpoint is intentionally public to accept customer submissions; the server validates payload size, quantities, stock and totals, but this does not establish a customer's identity or provide advanced spam prevention. Never share the Orders Sheet or commit exported customer records to GitHub.

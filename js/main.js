@@ -198,7 +198,7 @@ const STORE = {
     if (window.ORDER_CAPTURE_AVAILABLE && $('#private-orders-link')) {
       $('#private-orders-link').href = window.CATALOGUE_CONFIG.endpoint + '?page=admin';
       $('#private-orders-link').hidden = false;
-      $('#private-orders-status').textContent = 'Automatic order capture is active for COD, UPI and Razorpay. Open the private dashboard while signed in to the Google account that owns the Orders Sheet.';
+      $('#private-orders-status').textContent = 'Automatic order capture is active for COD, UPI and Razorpay. ' + (window.STOCK_AUTOMATION_AVAILABLE ? 'Stock deduction is active. Cancelling an unshipped order restores stock once. ' : 'Automatic stock deduction is awaiting the updated Google script deployment. ') + 'Open the private dashboard while signed in to the Google account that owns the Orders Sheet.';
     }
     let edits = read('futurefpv-admin-v1', products.map(p => ({...p})));
     if (!Array.isArray(edits) || edits.length !== products.length) edits = products.map(p => ({...p}));

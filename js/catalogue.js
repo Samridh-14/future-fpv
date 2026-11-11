@@ -30,6 +30,7 @@ window.CATALOGUE_READY = (async () => {
     }
     // Keep names, descriptions and local photos in products.js; only numbers are live.
     window.ORDER_CAPTURE_AVAILABLE = data.orderCapture === 1;
+    window.STOCK_AUTOMATION_AVAILABLE = data.stockAutomation === 1;
     window.PRODUCTS = local.map(p => {
       const live = data.products.find(row => row.id === p.id);
       return {...p, price:live.price, stock:live.stock};

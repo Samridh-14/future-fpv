@@ -35,6 +35,10 @@ Prices and stock are connected to the private Google Sheet through the deployed 
 
 The checkout and private Google-account order dashboard are prepared for COD, UPI and Razorpay requests. The owner must deploy the updated Code.gs before activation. Until the product feed advertises order capture, the live storefront keeps its WhatsApp checkout. Follow [the order activation guide](integrations/google-sheets/ORDERS_SETUP.md). Customer details go to a separate private Orders Sheet after activation, not to the public product feed or GitHub. Payment status remains Unverified until checked manually.
 
+## Automatic stock deduction (awaiting Google deployment)
+
+Automatic deduction, duplicate-safe retries and cancellation restocking are prepared. Enable the Google Sheets API service and deploy the updated Code.gs using [the stock activation guide](integrations/google-sheets/STOCK_SETUP.md). All payment choices reserve units when the order saves, even while payment is unverified. Earlier orders keep Legacy manual stock handling. No SMS integration is included.
+
 ## Edit the store
 
 - **js/products.js:** edit product names, prices, stock, descriptions and image paths.
