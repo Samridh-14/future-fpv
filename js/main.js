@@ -100,17 +100,24 @@ const STORE = {
     $('#cart-content').addEventListener('change', e => { if (e.target.matches('[data-quantity]')) updateQty(Number(e.target.dataset.quantity), e.target.value); });
     function paymentInfo() {
       const payment = $('#payment').value; const box = $('#payment-info');
+      if (window.ORDER_CAPTURE_AVAILABLE) { box.textContent = payment === 'Cash on delivery' ? 'Your order is saved first. Pay on delivery after the store confirms availability.' : 'Place your order first to receive an order ID. Payment instructions appear after the order is saved. Payment is verified separately by the store.'; return; }
       if (payment === 'Cash on delivery') box.textContent = 'Pay on delivery after the store confirms COD availability for your address.';
       if (payment === 'UPI') { box.innerHTML = `<strong>UPI payment</strong><p>UPI ID: ${STORE.upiId ? esc(STORE.upiId) : 'YOUR_UPI_ID — not configured'}</p>${STORE.upiQrImage ? `<img src="${esc(STORE.upiQrImage)}" width="160" height="160" alt="Future FPV UPI payment QR code">` : '<div class="qr-placeholder">Your real UPI QR code goes here</div>'}<p>Wait for order confirmation before paying. This site does not verify UPI payments.</p>`; }
       if (payment === 'Razorpay') { let valid = false; try { const u = new URL(STORE.razorpayPaymentLink); valid = u.protocol === 'https:' && ['rzp.io','razorpay.com','pages.razorpay.com'].includes(u.hostname); } catch (_) {} box.innerHTML = '<strong>Razorpay · UPI, cards & net banking</strong><p>' + (valid ? 'A hosted payment link is available. Confirm the exact amount with the store before paying.' : 'Razorpay is not configured yet. The store can send a secure payment link after confirming your order.') + '</p>' + (valid ? `<a class="text-link" target="_blank" rel="noopener noreferrer" href="${esc(STORE.razorpayPaymentLink)}">Open Razorpay payment link ↗</a>` : ''); }
+    }
+    if (window.ORDER_CAPTURE_AVAILABLE) {
+      $('#place-order').textContent = 'Place order ↗';
+      $('#checkout-instructions').textContent = 'Place your order to save your delivery details securely with the store and receive an order ID. This works for COD, UPI and Razorpay. The store confirms stock, delivery and payment separately.';
+      $('#checkout-next-steps').innerHTML = '<li>Check your products and delivery details.</li><li>Place the order and keep your order ID.</li><li>Follow the payment instructions or contact the store on WhatsApp.</li>';
     }
     $('#payment').addEventListener('change', paymentInfo); paymentInfo(); renderCart();
     // Persist only a random reference and cart signature, never delivery details.
     let requestReference = read('futurefpv-order-reference-v1', null);
     if (!requestReference || !/^FF-[0-9]{8}-[A-F0-9]{24}$/.test(requestReference.id) || typeof requestReference.signature !== 'string') requestReference = null;
     function showReference() {
-      $('#order-reference').hidden = !requestReference;
-      $('#order-reference-value').textContent = requestReference ? requestReference.id : '';
+      const visibleId = requestReference ? (window.ORDER_CAPTURE_AVAILABLE ? requestReference.confirmedId : requestReference.id) : '';
+      $('#order-reference').hidden = !visibleId;
+      $('#order-reference-value').textContent = visibleId || '';
     }
     function orderId() {
       const signature = JSON.stringify({items:cart.map(row => [row.id,row.qty,getProduct(row.id).price]),shipping:STORE.shipping});
@@ -127,13 +134,60 @@ const STORE = {
       requestReference = null;
       save('futurefpv-order-reference-v1',null);
       showReference();
+      if ($('#saved-order-actions')) $('#saved-order-actions').hidden = true;
       $('#checkout-status').textContent = 'Your next checkout request will receive a new order ID.';
     });
     showReference();
-    $('#checkout-form').addEventListener('submit', e => { e.preventDefault(); if (!cart.length) return; const form = e.currentTarget; if (!form.reportValidity()) return;
+    function savedPayment(order) {
+      const box = $('#saved-order-payment');
+      if (order.payment === 'Cash on delivery') { box.textContent = 'Order saved. Payment is due on delivery after the store confirms your order. No online payment was collected.'; return; }
+      if (order.payment === 'UPI') { box.innerHTML = `<strong>Order saved · UPI payment</strong><p>UPI ID: ${STORE.upiId ? esc(STORE.upiId) : 'Not configured yet — contact the store for payment instructions.'}</p>${STORE.upiQrImage ? `<img src="${esc(STORE.upiQrImage)}" width="160" height="160" alt="Future FPV UPI payment QR code">` : ''}<p>Amount: ${money(order.total)}. Quote order ID ${esc(order.id)}. Wait for stock confirmation before paying. Payment remains unverified until the store checks receipt.</p>`; return; }
+      let link = '';
+      try { const u = new URL(STORE.razorpayPaymentLink); if (u.protocol === 'https:' && ['rzp.io','razorpay.com','pages.razorpay.com'].includes(u.hostname)) link = u.href; } catch (_) {}
+      box.innerHTML = `<strong>Order saved · Razorpay payment</strong><p>Order ID: ${esc(order.id)} · Amount: ${money(order.total)}.</p><p>${link ? 'Confirm stock and the exact payment-link amount with the store before paying.' : 'The store will send a secure payment link after confirming stock. Razorpay is not connected for automatic payment collection.'}</p>${link ? `<a class="text-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">Continue to Razorpay ↗</a>` : ''}<p>Payment remains unverified until the store checks receipt.</p>`;
+    }
+    $('#checkout-form').addEventListener('submit', async e => {
+      e.preventDefault(); if (!cart.length) return;
+      const form = e.currentTarget; if (!form.reportValidity()) return;
       if (window.CATALOGUE_UNAVAILABLE) { $('#checkout-status').textContent = 'Live prices and stock are unavailable. Refresh or contact the store before ordering.'; return; }
-      if (!whatsappUrl('')) { openWhatsApp('', $('#checkout-status')); return; }
-      const reference = orderId(); const data = new FormData(form); const lines = cart.map(row => { const p = getProduct(row.id); return `${p.name} × ${row.qty} — ${money(p.price * row.qty)}`; }); const message = ['Hello Future FPV! I would like to place an order request:', `Order ID: ${reference}`, '', ...lines, '', `Subtotal: ${money(subtotal())}`, `Shipping: ${money(STORE.shipping)}`, `Total: ${money(subtotal()+STORE.shipping)}`, '', `Name: ${data.get('name').trim()}`, `Phone: ${data.get('phone')}`, `Address: ${data.get('address').trim()}`, `PIN: ${data.get('pincode')}`, `Payment preference: ${data.get('payment')}`, '', 'Please confirm stock, delivery, return terms and payment instructions.'].join('\n'); if (openWhatsApp(message, $('#checkout-status'))) $('#checkout-status').textContent = 'Order ID: ' + reference + '. WhatsApp opened with your order request. Press Send there and keep this ID for follow-up. The store will confirm your order.'; });
+      const data = new FormData(form);
+      const reference = orderId();
+      let receipt;
+      const button = $('#place-order');
+      if (window.ORDER_CAPTURE_AVAILABLE) {
+        if (button.disabled) return;
+        button.disabled = true;
+        $('#new-order-reference').disabled = true;
+        $('#saved-order-actions').hidden = true;
+        $('#checkout-status').textContent = 'Saving your order securely. Please wait…';
+        try {
+          receipt = await window.submitStoreOrder({requestKey:reference,customer:String(data.get('name')).trim(),phone:String(data.get('phone')).trim(),address:String(data.get('address')).trim(),pincode:String(data.get('pincode')).trim(),payment:String(data.get('payment')),items:cart.map(row=>({id:row.id,qty:row.qty})),expectedTotal:Math.round((subtotal()+STORE.shipping)*100)/100,consent:true});
+          requestReference.confirmedId = receipt.id;
+          save('futurefpv-order-reference-v1', requestReference);
+          showReference();
+          $('#order-reference-note').textContent = 'Your order request is saved with the store. Keep this ID for follow-up. Payment remains unverified until the store checks receipt.';
+          $('#checkout-status').textContent = 'Order saved! Your order ID is ' + receipt.id + '. Total: ' + money(receipt.total) + '. Payment preference: ' + receipt.payment + '. No payment has been confirmed.';
+          savedPayment(receipt);
+        } catch (error) {
+          $('#checkout-status').textContent = error.message || 'Could not confirm your order. Please retry with the same request ID.';
+          return;
+        } finally { button.disabled = false; $('#new-order-reference').disabled = false; }
+      } else {
+        // Keep the existing WhatsApp flow until the owner deploys order capture.
+        if (!whatsappUrl('')) { openWhatsApp('', $('#checkout-status')); return; }
+        receipt = {id:reference,items:cart.map(row=>({...getProduct(row.id),qty:row.qty})),subtotal:subtotal(),shipping:STORE.shipping,total:subtotal()+STORE.shipping,payment:String(data.get('payment'))};
+      }
+      const lines = receipt.items.map(item => `${item.name} × ${item.qty} — ${money(item.price*item.qty)}`);
+      const message = ['Hello Future FPV! I would like to follow up on my order request:', `Order ID: ${receipt.id}`, '', ...lines, '', `Subtotal: ${money(receipt.subtotal)}`, `Shipping: ${money(receipt.shipping)}`, `Total: ${money(receipt.total)}`, '', `Name: ${String(data.get('name')).trim()}`, `Phone: ${data.get('phone')}`, `Address: ${String(data.get('address')).trim()}`, `PIN: ${data.get('pincode')}`, `Payment preference: ${receipt.payment}`, '', 'Please confirm stock, delivery, return terms and payment instructions.'].join('\n');
+      if (window.ORDER_CAPTURE_AVAILABLE) {
+        const url = whatsappUrl(message);
+        $('#saved-order-whatsapp').hidden = !url;
+        if (url) $('#saved-order-whatsapp').href = url;
+        $('#saved-order-actions').hidden = false;
+      } else if (openWhatsApp(message, $('#checkout-status'))) {
+        $('#checkout-status').textContent = 'Order ID: ' + reference + '. WhatsApp opened with your order request. Press Send there and keep this ID for follow-up. The store will confirm your order.';
+      }
+    });
   }
   if (page === 'contact') {
     $('#contact-methods').innerHTML = `<h2>Talk to Future FPV</h2><div class="contact-option"><strong>WhatsApp</strong><br>${STORE.whatsapp ? `<button class="button secondary" id="contact-wa">Start a conversation ↗</button>` : '<p>Business WhatsApp number coming soon.</p>'}</div><div class="contact-option"><strong>Phone</strong><br>${/^\+?\d{10,15}$/.test(STORE.phone) ? `<a href="tel:${esc(STORE.phone)}">${esc(STORE.phone)}</a>` : '<p>Phone number coming soon.</p>'}</div><div class="contact-option"><strong>Email</strong><br>${/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(STORE.email) ? `<a href="mailto:${esc(STORE.email)}">${esc(STORE.email)}</a>` : '<p>Email address coming soon.</p>'}</div><p>Delivery across India · ₹35 per order</p>`;
@@ -141,6 +195,11 @@ const STORE = {
     $('#contact-form').onsubmit = e => { e.preventDefault(); const data = new FormData(e.currentTarget); openWhatsApp(`Hello Future FPV!\nName: ${data.get('name')}\nEmail: ${data.get('email')}\n\n${data.get('message')}`, $('#contact-status')); };
   }
   if (page === 'admin') {
+    if (window.ORDER_CAPTURE_AVAILABLE && $('#private-orders-link')) {
+      $('#private-orders-link').href = window.CATALOGUE_CONFIG.endpoint + '?page=admin';
+      $('#private-orders-link').hidden = false;
+      $('#private-orders-status').textContent = 'Automatic order capture is active for COD, UPI and Razorpay. Open the private dashboard while signed in to the Google account that owns the Orders Sheet.';
+    }
     let edits = read('futurefpv-admin-v1', products.map(p => ({...p})));
     if (!Array.isArray(edits) || edits.length !== products.length) edits = products.map(p => ({...p}));
     function renderAdmin() { $('#admin-products').innerHTML = edits.map(p => `<div class="admin-row"><label>Product name<input data-id="${p.id}" data-field="name" value="${esc(p.name)}" maxlength="120"></label><label>Price (₹)<input type="number" min="1" step="1" data-id="${p.id}" data-field="price" value="${p.price}"></label><label>Stock<input type="number" min="0" step="1" data-id="${p.id}" data-field="stock" value="${p.stock}"></label></div>`).join(''); }

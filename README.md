@@ -31,6 +31,10 @@ Cart data uses localStorage. A web server or HTTPS hosting gives more consistent
 
 Prices and stock are connected to the private Google Sheet through the deployed read-only Apps Script feed. Edit the price and stock columns, wait for Google to save, and refresh the website. No GitHub upload is needed for these numbers. Product descriptions and photos remain in products.js. See [the setup and editing guide](integrations/google-sheets/SETUP.md).
 
+## Automatic order capture (awaiting script deployment)
+
+The checkout and private Google-account order dashboard are prepared for COD, UPI and Razorpay requests. The owner must deploy the updated Code.gs before activation. Until the product feed advertises order capture, the live storefront keeps its WhatsApp checkout. Follow [the order activation guide](integrations/google-sheets/ORDERS_SETUP.md). Customer details go to a separate private Orders Sheet after activation, not to the public product feed or GitHub. Payment status remains Unverified until checked manually.
+
 ## Edit the store
 
 - **js/products.js:** edit product names, prices, stock, descriptions and image paths.
