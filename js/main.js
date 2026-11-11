@@ -11,8 +11,9 @@ const STORE = {
   shipping: 35
 };
 
-(() => {
+(async () => {
   'use strict';
+  if (window.CATALOGUE_READY) await window.CATALOGUE_READY;
   const $ = (selector) => document.querySelector(selector);
   const money = n => '₹' + Number(n).toLocaleString('en-IN');
   // Escape user-editable text before inserting it in HTML.
@@ -32,6 +33,7 @@ const STORE = {
   function storeCart() { save('futurefpv-cart-v1', cart); countCart(); }
   function subtotal() { return cart.reduce((sum,row) => sum + getProduct(row.id).price * row.qty, 0); }
   function addToCart(id, qty = 1) {
+    if (window.CATALOGUE_UNAVAILABLE) return toast('Live prices and stock are unavailable. Please refresh or contact the store.');
     const p = getProduct(id); if (!p || p.stock < 1) return toast('This product is out of stock.');
     qty = Math.max(1, Math.floor(Number(qty) || 1));
     const row = cart.find(r => r.id === p.id);
@@ -50,11 +52,17 @@ const STORE = {
   const nav = [['index','Home'],['shop','Shop'],['about','Our story'],['contact','Contact']];
   $('#site-header').innerHTML = `<div class="announcement">MORE AIRTIME. LESS GUESSWORK. &nbsp; / &nbsp; ₹35 SHIPPING ACROSS INDIA</div><header><nav class="site-nav" aria-label="Main navigation"><a class="brand" href="index.html" aria-label="Future FPV home"><span class="brand-mark">✣</span> FUTURE <b>FPV</b></a><div class="nav-links" id="nav-links">${nav.map(([file,label]) => `<a href="${file}.html" ${page === file ? 'aria-current="page"' : ''}>${label}</a>`).join('')}</div><div class="nav-actions"><a class="cart-link" href="cart.html" aria-label="View shopping cart">Cart <span class="cart-count">0</span></a><button class="menu-toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle navigation">☰</button></div></nav></header><div class="demo-notice">PRE-LAUNCH PREVIEW · Sample products & illustrations · Payment setup pending</div>`;
   $('#site-footer').innerHTML = `<footer class="site-footer"><div class="footer-inner"><div class="footer-grid"><div><a class="brand" href="index.html">FUTURE <b>FPV</b></a><p>For the builders. For the flyers.<br>Your next flight starts here.</p></div><div><h3>Explore</h3><div class="footer-links"><a href="shop.html">Shop all parts</a><a href="about.html">Our story</a><a href="contact.html">Get in touch</a></div></div><div><h3>Flight support</h3><div class="footer-links"><a href="index.html#guide">Beginner's guide</a><a href="index.html#main">Shipping: ₹35 across India</a><a href="contact.html">Compatibility advice</a></div></div><div><h3>Good to know</h3><p>Payment and delivery are confirmed when your order request is reviewed.</p></div></div><div class="footer-bottom">© ${new Date().getFullYear()} Future FPV · Built for the love of flight.</div></div></footer>`;
+  if (window.CATALOGUE_UNAVAILABLE) {
+    const warning = document.createElement('div');
+    warning.className = 'notice'; warning.setAttribute('role','alert');
+    warning.textContent = 'Live prices and stock could not be loaded. Displayed numbers may be outdated. Ordering is temporarily unavailable; refresh this page or contact us on WhatsApp.';
+    $('#main').prepend(warning);
+  }
   countCart();
   $('.menu-toggle').addEventListener('click', e => { const open = e.currentTarget.getAttribute('aria-expanded') !== 'true'; e.currentTarget.setAttribute('aria-expanded', String(open)); $('#nav-links').classList.toggle('open', open); });
   $('#whatsapp-float').addEventListener('click', () => openWhatsApp('Hi Future FPV! I need help with my next build.'));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('#nav-links').classList.remove('open'); $('.menu-toggle').setAttribute('aria-expanded','false'); } });
-  function card(p) { return `<article class="product-card"><a class="product-visual" href="product.html?id=${p.id}" style="display:block"><img src="${p.image}" alt="${esc(p.alt)}" width="440" height="360" loading="lazy">${p.stock < 1 ? '<span class="stock-label">OUT OF STOCK</span>' : ''}</a><p class="product-category">${esc(p.category)}</p><h3><a href="product.html?id=${p.id}">${esc(p.name)}</a></h3><div class="product-bottom"><span class="price">${money(p.price)}</span><button class="quick-add" data-add="${p.id}" aria-label="Add ${esc(p.name)} to cart" ${!p.stock ? 'disabled' : ''}>${p.stock ? 'Add +' : 'Sold out'}</button></div></article>`; }
+  function card(p) { return `<article class="product-card"><a class="product-visual" href="product.html?id=${p.id}" style="display:block"><img src="${p.image}" alt="${esc(p.alt)}" width="440" height="360" loading="lazy">${p.stock < 1 ? '<span class="stock-label">OUT OF STOCK</span>' : ''}</a><p class="product-category">${esc(p.category)}</p><h3><a href="product.html?id=${p.id}">${esc(p.name)}</a></h3><div class="product-bottom"><span class="price">${money(p.price)}</span><button class="quick-add" data-add="${p.id}" aria-label="Add ${esc(p.name)} to cart" ${!p.stock || window.CATALOGUE_UNAVAILABLE ? 'disabled' : ''}>${p.stock ? 'Add +' : 'Sold out'}</button></div></article>`; }
   document.addEventListener('click', e => { const button = e.target.closest('[data-add]'); if (button) addToCart(Number(button.dataset.add)); });
   if ($('#featured-products')) $('#featured-products').innerHTML = products.slice(0,4).map(card).join('');
   if (page === 'shop') {
@@ -72,7 +80,7 @@ const STORE = {
       document.querySelector('meta[property="og:title"]').content = document.title;
       document.querySelector('meta[property="og:description"]').content = p.description;
       document.querySelector('meta[property="og:image"]').content = p.image;
-      $('#product-detail').innerHTML = `<p class="breadcrumbs"><a href="shop.html">Shop</a> / ${esc(p.category)}</p><div class="product-detail-grid"><img class="product-photo" src="${p.image}" alt="${esc(p.alt)}" width="440" height="360"><div class="product-info"><p class="eyebrow">${esc(p.category)}</p><h1>${esc(p.name)}</h1><span class="price">${money(p.price)}</span><p class="product-description">${esc(p.description)}</p><p>${p.stock > 0 ? p.stock + ' available in sample stock' : 'Out of stock'}</p><div class="purchase-row"><div class="quantity-control"><button type="button" id="qty-down" aria-label="Decrease quantity">−</button><input id="product-qty" type="number" min="1" max="${Math.max(1,p.stock)}" value="1" aria-label="Product quantity"><button type="button" id="qty-up" aria-label="Increase quantity">+</button></div><button class="button" id="product-add" ${p.stock ? '' : 'disabled'}>Add to cart ↗</button></div><p class="muted">₹35 flat delivery across India · Sample listing</p><details open><summary>Compatibility & specifications</summary><p>${esc(p.compatibility)}</p><p class="muted">Sample specifications. Confirm the real product and your complete build before purchasing.</p></details><details><summary>Shipping & returns</summary><p>Delivery is ₹35 per order. Serviceability, dispatch timing and return terms must be confirmed with the store before payment.</p></details><p><a class="text-link" href="contact.html">Not sure it fits? Ask us →</a></p></div></div>`;
+      $('#product-detail').innerHTML = `<p class="breadcrumbs"><a href="shop.html">Shop</a> / ${esc(p.category)}</p><div class="product-detail-grid"><img class="product-photo" src="${p.image}" alt="${esc(p.alt)}" width="440" height="360"><div class="product-info"><p class="eyebrow">${esc(p.category)}</p><h1>${esc(p.name)}</h1><span class="price">${money(p.price)}</span><p class="product-description">${esc(p.description)}</p><p>${p.stock > 0 ? p.stock + ' available in sample stock' : 'Out of stock'}</p><div class="purchase-row"><div class="quantity-control"><button type="button" id="qty-down" aria-label="Decrease quantity">−</button><input id="product-qty" type="number" min="1" max="${Math.max(1,p.stock)}" value="1" aria-label="Product quantity"><button type="button" id="qty-up" aria-label="Increase quantity">+</button></div><button class="button" id="product-add" ${p.stock && !window.CATALOGUE_UNAVAILABLE ? '' : 'disabled'}>Add to cart ↗</button></div><p class="muted">₹35 flat delivery across India · Sample listing</p><details open><summary>Compatibility & specifications</summary><p>${esc(p.compatibility)}</p><p class="muted">Sample specifications. Confirm the real product and your complete build before purchasing.</p></details><details><summary>Shipping & returns</summary><p>Delivery is ₹35 per order. Serviceability, dispatch timing and return terms must be confirmed with the store before payment.</p></details><p><a class="text-link" href="contact.html">Not sure it fits? Ask us →</a></p></div></div>`;
       const qty = $('#product-qty');
       const clampQty = () => qty.value = Math.max(1, Math.min(p.stock || 1, Math.floor(Number(qty.value) || 1)));
       $('#qty-down').onclick = () => { qty.value = Number(qty.value) - 1; clampQty(); };
@@ -123,6 +131,7 @@ const STORE = {
     });
     showReference();
     $('#checkout-form').addEventListener('submit', e => { e.preventDefault(); if (!cart.length) return; const form = e.currentTarget; if (!form.reportValidity()) return;
+      if (window.CATALOGUE_UNAVAILABLE) { $('#checkout-status').textContent = 'Live prices and stock are unavailable. Refresh or contact the store before ordering.'; return; }
       if (!whatsappUrl('')) { openWhatsApp('', $('#checkout-status')); return; }
       const reference = orderId(); const data = new FormData(form); const lines = cart.map(row => { const p = getProduct(row.id); return `${p.name} × ${row.qty} — ${money(p.price * row.qty)}`; }); const message = ['Hello Future FPV! I would like to place an order request:', `Order ID: ${reference}`, '', ...lines, '', `Subtotal: ${money(subtotal())}`, `Shipping: ${money(STORE.shipping)}`, `Total: ${money(subtotal()+STORE.shipping)}`, '', `Name: ${data.get('name').trim()}`, `Phone: ${data.get('phone')}`, `Address: ${data.get('address').trim()}`, `PIN: ${data.get('pincode')}`, `Payment preference: ${data.get('payment')}`, '', 'Please confirm stock, delivery, return terms and payment instructions.'].join('\n'); if (openWhatsApp(message, $('#checkout-status'))) $('#checkout-status').textContent = 'Order ID: ' + reference + '. WhatsApp opened with your order request. Press Send there and keep this ID for follow-up. The store will confirm your order.'; });
   }

@@ -1,8 +1,9 @@
 /* Manual order register for a static site.
    Customer checkout DOES NOT write here: localStorage is not a shared database.
    Only an operator's manual entries are stored. No data is sent to any server. */
-(() => {
+(async () => {
   'use strict';
+  if (window.CATALOGUE_READY) await window.CATALOGUE_READY;
   if (document.body.dataset.page !== 'admin') return;
   const $ = selector => document.querySelector(selector);
   const key = 'futurefpv-manual-orders-v1';
