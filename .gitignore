@@ -22,3 +22,6 @@ scratch/
 .DS_Store
 Thumbs.db
 *~
+
+# Private manual order exports.
+future-fpv-orders-*.json

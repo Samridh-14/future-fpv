@@ -25,7 +25,7 @@ Cart data uses localStorage. A web server or HTTPS hosting gives more consistent
 - WhatsApp order requests and enquiries connected to +91 9310522469.
 - UPI setup area and an optional Razorpay hosted payment link.
 - Mobile navigation, beginner guidance, compatibility notes and FAQs.
-- A local stock editor at admin.html.
+- An Admin link in the public menu and footer, leading to stock editing and a manual order register at admin.html.
 
 ## Edit the store
 
@@ -44,7 +44,7 @@ Checkout opens a prepared WhatsApp message. Customers must press Send in WhatsAp
 
 Razorpay is not fully integrated. You can configure a public hosted payment link after confirming the correct order amount. Automated payment creation and verification require a secure backend. Never put a Razorpay secret key or other credentials in website files.
 
-UPI payments need manual confirmation. Customer addresses and order details go through WhatsApp; they are not saved in a shared admin dashboard. A secure shared dashboard and live inventory need a backend or ecommerce service.
+UPI payments need manual confirmation. Customer addresses and order details go through WhatsApp. The admin page provides a manual order register: add received WhatsApp orders, search by customer or phone, filter and change fulfilment status, track payment status manually, and download/restore JSON backups. This register is stored only in the current browser profile on the current website origin. It does not receive orders automatically or sync across devices or between GitHub Pages and the hosted preview. There is no admin login. Anyone with access to the same browser profile can read local entries. Backups contain customer details: keep them private and never commit them to GitHub. A secure shared dashboard, automatic order capture and live inventory need a backend or ecommerce service.
 
 ## Publish with GitHub Pages
 
