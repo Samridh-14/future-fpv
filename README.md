@@ -25,7 +25,7 @@ Cart data uses localStorage. A web server or HTTPS hosting gives more consistent
 - WhatsApp order requests and enquiries connected to +91 9310522469.
 - UPI setup area and an optional Razorpay hosted payment link.
 - Mobile navigation, beginner guidance, compatibility notes and FAQs.
-- An Admin link in the public menu and footer, leading to stock editing and a manual order register at admin.html.
+- A separate admin.html page for local stock editing and a manual order register, accessible by direct URL.
 
 ## Edit the store
 
